@@ -1,6 +1,9 @@
 const {exec} = require('child_process');
 const {renameSync, readFileSync, writeFileSync, copyFileSync, existsSync, mkdirSync} = require('fs');
 
+const pkg = JSON.parse(readFileSync('package.json', 'utf-8'));
+const banner = '/*! ' + pkg.name + ' v' + pkg.version + ' */';
+
 exec('tsc', () => {
     const libDir = 'dist/lib';
     const jsDir = 'dist/js';
@@ -13,8 +16,8 @@ exec('tsc', () => {
     const text = readFileSync(js, 'utf8');
     exec('terser ' + js + ' -c -o ' + minJs, () => {
         const minText = readFileSync(minJs, 'utf8');
-        writeFileSync(js, text.replace('"use strict";', '"use strict";if (typeof exports === \'undefined\') { var exports = {};}'));
-        writeFileSync(minJs, minText.replace('"use strict";', '"use strict";if(typeof exports===\'undefined\')var exports={};'));
+        writeFileSync(js, text.replace('"use strict";', banner + '"use strict";if (typeof exports === \'undefined\') { var exports = {};}'));
+        writeFileSync(minJs, minText.replace('"use strict";', banner + '"use strict";if(typeof exports===\'undefined\')var exports={};'));
         // for WeChat
         copyFileSync(minJs, libDir + '/index.cjs.js');
         console.log('js build completed')
