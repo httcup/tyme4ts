@@ -1,0 +1,586 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>tyme4ts 万年历 · 公历 / 农历 / 干支 / 节气 / 八字</title>
+<meta name="description" content="基于 tyme4ts 日历库的在线万年历，支持公历、农历、藏历、回历、干支、生肖、节气、月相、法定假日与八字排盘。">
+<style>
+:root{
+  --bg:#f6f4ef;
+  --panel:#ffffff;
+  --panel-2:#fbfaf6;
+  --line:#e7e2d8;
+  --line-soft:#f0ece3;
+  --ink:#221f1a;
+  --ink-2:#4a463d;
+  --ink-3:#87816f;
+  --accent:#a8412c;
+  --accent-soft:#f5e7e2;
+  --gold:#b0862c;
+  --green:#3f6b4f;
+  --radius:16px;
+  --shadow:0 1px 2px rgba(34,31,26,.04), 0 8px 24px -12px rgba(34,31,26,.14);
+}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0}
+body{
+  background:
+    radial-gradient(1200px 600px at 50% -300px, #fffdf8 0%, transparent 70%),
+    var(--bg);
+  color:var(--ink);
+  font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans GB","Microsoft YaHei","Segoe UI",Roboto,sans-serif;
+  font-feature-settings:"tnum";
+  -webkit-font-smoothing:antialiased;
+  line-height:1.55;
+  padding:0 20px 64px;
+}
+.wrap{max-width:1120px;margin:0 auto}
+.serif{font-family:"Songti SC","Noto Serif SC",Georgia,"Times New Roman",serif}
+
+/* ---------- header ---------- */
+header{display:flex;align-items:flex-end;justify-content:space-between;gap:16px;padding:36px 0 22px;flex-wrap:wrap}
+.brand{display:flex;align-items:center;gap:14px}
+.seal{
+  width:46px;height:46px;border-radius:12px;flex:0 0 auto;
+  background:var(--accent);color:#fff;display:grid;place-items:center;
+  font-size:24px;box-shadow:0 6px 16px -8px rgba(168,65,44,.8);
+}
+h1{font-size:22px;margin:0;letter-spacing:.04em;font-weight:650}
+.brand p{margin:2px 0 0;font-size:13px;color:var(--ink-3);letter-spacing:.02em}
+.ghlink{
+  display:inline-flex;align-items:center;gap:8px;text-decoration:none;
+  color:var(--ink-2);font-size:13.5px;border:1px solid var(--line);
+  background:var(--panel);border-radius:999px;padding:9px 16px;
+  transition:.18s ease;white-space:nowrap;
+}
+.ghlink:hover{border-color:var(--ink-3);color:var(--ink);transform:translateY(-1px)}
+
+/* ---------- toolbar ---------- */
+.toolbar{
+  display:flex;gap:10px;align-items:center;flex-wrap:wrap;
+  background:var(--panel);border:1px solid var(--line);border-radius:14px;
+  padding:10px 12px;box-shadow:var(--shadow);margin-bottom:18px;
+}
+.toolbar .spacer{flex:1}
+input[type=date],input[type=datetime-local],select{
+  font:inherit;font-size:14px;color:var(--ink);background:var(--panel-2);
+  border:1px solid var(--line);border-radius:10px;padding:8px 10px;outline:none;
+  transition:.15s;
+}
+input[type=date]:focus,input[type=datetime-local]:focus,select:focus{border-color:var(--accent);background:#fff;box-shadow:0 0 0 3px var(--accent-soft)}
+.btn{
+  font:inherit;font-size:14px;cursor:pointer;border-radius:10px;padding:8px 14px;
+  border:1px solid var(--line);background:var(--panel-2);color:var(--ink-2);transition:.15s;
+}
+.btn:hover{background:#fff;border-color:var(--ink-3);color:var(--ink)}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:#fff}
+.btn.primary:hover{filter:brightness(1.06);color:#fff}
+.btn.icon{padding:8px 12px;font-size:15px;line-height:1}
+.hint{font-size:12.5px;color:var(--ink-3)}
+
+/* ---------- hero ---------- */
+.hero{
+  background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);
+  box-shadow:var(--shadow);padding:26px 28px;margin-bottom:16px;
+  display:grid;grid-template-columns:minmax(220px,1fr) 1.35fr;gap:26px;position:relative;overflow:hidden;
+}
+.hero::after{
+  content:"";position:absolute;inset:auto -60px -120px auto;width:320px;height:320px;border-radius:50%;
+  background:radial-gradient(closest-side, rgba(176,134,44,.10), transparent);
+  pointer-events:none;
+}
+.hero-left{display:flex;flex-direction:column;justify-content:center;border-right:1px dashed var(--line);padding-right:26px}
+.bigday{display:flex;align-items:baseline;gap:12px}
+.bigday .num{font-size:72px;line-height:.9;font-weight:600;letter-spacing:-.02em;color:var(--accent)}
+.bigday .md{font-size:15px;color:var(--ink-2);line-height:1.5}
+.bigday .md b{display:block;font-size:17px;color:var(--ink);font-weight:600}
+.lunarline{margin-top:16px;font-size:21px;letter-spacing:.02em;color:var(--ink);font-weight:600}
+.hero-left .sub{margin-top:6px;font-size:13px;color:var(--ink-3)}
+.hero-right{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px 22px;align-content:center}
+.kv{display:flex;flex-direction:column;gap:2px;min-width:0}
+.kv .k{font-size:12px;color:var(--ink-3);letter-spacing:.08em}
+.kv .v{font-size:15.5px;color:var(--ink);font-weight:550;overflow-wrap:anywhere}
+.kv .v.accent{color:var(--accent)}
+.kv .v.gold{color:var(--gold)}
+.pill{
+  display:inline-block;font-size:11.5px;line-height:1;padding:5px 9px;border-radius:999px;
+  background:var(--accent-soft);color:var(--accent);margin-left:8px;vertical-align:middle;font-weight:600;
+}
+.pill.gray{background:#f1efe9;color:var(--ink-3)}
+.pill.green{background:#e8f0ea;color:var(--green)}
+
+/* ---------- grid cards ---------- */
+.grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin-bottom:16px}
+.card{
+  background:var(--panel);border:1px solid var(--line);border-radius:13px;padding:14px 15px;
+  box-shadow:0 1px 2px rgba(34,31,26,.03);transition:.18s ease;min-width:0;
+}
+.card:hover{border-color:#d8d1c2;transform:translateY(-1px)}
+.card .label{font-size:12px;color:var(--ink-3);letter-spacing:.08em;display:flex;justify-content:space-between;gap:6px}
+.card .value{font-size:19px;font-weight:600;margin-top:5px;color:var(--ink);overflow-wrap:anywhere}
+.card .value.sm{font-size:15px}
+.card .meta{font-size:12.5px;color:var(--ink-3);margin-top:3px}
+
+/* ---------- panels ---------- */
+.two{display:grid;grid-template-columns:1.15fr .85fr;gap:16px;margin-bottom:16px;align-items:start}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow);padding:20px 22px}
+.panel h2{
+  font-size:14px;margin:0 0 16px;color:var(--ink-2);letter-spacing:.1em;font-weight:650;
+  display:flex;align-items:center;gap:9px;
+}
+.panel h2::before{content:"";width:3px;height:14px;border-radius:2px;background:var(--accent)}
+.panel h2 .tag{margin-left:auto;font-size:11.5px;font-weight:500;letter-spacing:0;color:var(--ink-3)}
+
+.yiji{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.yiji .box{border-radius:11px;padding:12px 14px;border:1px solid var(--line-soft);background:var(--panel-2)}
+.yiji .box.yi{border-color:#dbe7dd;background:#f5f8f5}
+.yiji .box.ji{border-color:#ecdcda;background:#fbf5f4}
+.yiji .box b{font-size:13px;letter-spacing:.1em;display:block;margin-bottom:8px}
+.yiji .box.yi b{color:var(--green)}
+.yiji .box.ji b{color:var(--accent)}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip{font-size:12.5px;padding:4px 9px;border-radius:8px;background:#fff;border:1px solid var(--line);color:var(--ink-2)}
+.chips.gods .chip{background:var(--panel-2)}
+.chip.good{border-color:#d5e3d8;color:#356045}
+.chip.bad{border-color:#ecdcd8;color:#9c4331}
+
+/* ---------- calendar ---------- */
+.cal-head{display:flex;align-items:center;gap:10px;margin-bottom:12px}
+.cal-head .title{font-size:16px;font-weight:650;letter-spacing:.02em}
+.cal-head .spacer{flex:1}
+.cal{display:grid;grid-template-columns:repeat(7,1fr);gap:4px}
+.cal .wd{text-align:center;font-size:12px;color:var(--ink-3);padding:6px 0;letter-spacing:.08em}
+.cal .wd.weekend{color:var(--accent)}
+.day{
+  position:relative;border:1px solid transparent;border-radius:10px;padding:7px 4px 6px;
+  text-align:center;cursor:pointer;background:var(--panel-2);transition:.13s ease;min-height:58px;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;
+}
+.day:hover{border-color:#d9d2c4;background:#fff}
+.day .d1{font-size:15px;font-weight:600;color:var(--ink);line-height:1.1}
+.day .d2{font-size:10.5px;color:var(--ink-3);line-height:1.25;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.day.empty{background:transparent;cursor:default}
+.day.empty:hover{border-color:transparent}
+.day.today{border-color:var(--gold);background:#fffaf0}
+.day.today .d1{color:var(--gold)}
+.day.sel{background:var(--accent);border-color:var(--accent)}
+.day.sel .d1,.day.sel .d2{color:#fff}
+.day .d2.term{color:var(--green);font-weight:650}
+.day.sel .d2.term{color:#ffe9d9}
+.day .d2.fest{color:var(--accent);font-weight:650}
+.day.sel .d2.fest{color:#ffd9cd}
+.legend{display:flex;gap:14px;margin-top:12px;font-size:12px;color:var(--ink-3);flex-wrap:wrap}
+.legend i{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:5px;vertical-align:middle}
+
+/* ---------- bazi ---------- */
+.bazi-table{width:100%;border-collapse:separate;border-spacing:6px 0;margin-top:2px}
+.bazi-table th{font-size:12px;color:var(--ink-3);font-weight:500;letter-spacing:.1em;padding-bottom:8px;text-align:center}
+.bazi-table td{text-align:center;padding:10px 6px;background:var(--panel-2);border:1px solid var(--line-soft);border-radius:10px}
+.bazi-table td.cy{font-size:20px;font-weight:650;letter-spacing:.12em;color:var(--ink)}
+.bazi-table td.snd{font-size:12px;color:var(--ink-3);padding-top:0;border-top:0;border-radius:0 0 10px 10px;background:transparent;border-color:transparent}
+.bazi-extra{display:grid;grid-template-columns:repeat(2,1fr);gap:8px 16px;margin-top:14px;font-size:13px;color:var(--ink-2)}
+.bazi-extra span{color:var(--ink-3);margin-right:6px;font-size:12px}
+
+footer{margin-top:26px;text-align:center;font-size:12.5px;color:var(--ink-3);line-height:1.9}
+footer a{color:var(--ink-2);text-decoration:none;border-bottom:1px solid var(--line)}
+footer a:hover{color:var(--accent);border-color:var(--accent)}
+
+@media (max-width:900px){
+  .hero{grid-template-columns:1fr;gap:18px}
+  .hero-left{border-right:0;border-bottom:1px dashed var(--line);padding-right:0;padding-bottom:16px}
+  .grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .two{grid-template-columns:1fr}
+  .bigday .num{font-size:60px}
+}
+@media (max-width:520px){
+  body{padding:0 12px 48px}
+  .grid{grid-template-columns:1fr 1fr}
+  .hero{padding:20px}
+  .day{min-height:52px}
+  .yiji{grid-template-columns:1fr}
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header>
+    <div class="brand">
+      <div class="seal serif">历</div>
+      <div>
+        <h1>tyme4ts 万年历</h1>
+        <p>公历 · 农历 · 藏历 · 回历 · 干支 · 节气 · 月相 · 八字</p>
+      </div>
+    </div>
+    <a class="ghlink" href="https://github.com/httcup/tyme4ts" target="_blank" rel="noopener">
+      <svg width="15" height="15" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27s1.36.09 2 .27c1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A7.995 7.995 0 0016 8c0-4.42-3.58-8-8-8z"/></svg>
+      httcup/tyme4ts
+    </a>
+  </header>
+
+  <div class="toolbar">
+    <input type="date" id="datePicker">
+    <button class="btn icon" id="prevDay" title="前一天">‹</button>
+    <button class="btn icon" id="nextDay" title="后一天">›</button>
+    <button class="btn primary" id="todayBtn">回到今天</button>
+    <div class="spacer"></div>
+    <span class="hint" id="jumpHint">支持直接选择任意日期，范围 1–9999 年</span>
+  </div>
+
+  <section class="hero">
+    <div class="hero-left">
+      <div class="bigday">
+        <div class="num serif" id="hDay">17</div>
+        <div class="md" id="hMonth">2026年11月<br><b id="hWeek">星期六</b></div>
+      </div>
+      <div class="lunarline serif" id="hLunar">农历丙午年九月廿九</div>
+      <div class="sub" id="hSub">丙午年 己亥月 乙酉日</div>
+    </div>
+    <div class="hero-right">
+      <div class="kv"><span class="k">生肖 / 星座</span><span class="v" id="hZodiac">—</span></div>
+      <div class="kv"><span class="k">节气 / 物候</span><span class="v" id="hTerm">—</span></div>
+      <div class="kv"><span class="k">日主五行</span><span class="v" id="hElement">—</span></div>
+      <div class="kv"><span class="k">值神 / 建除</span><span class="v" id="hDuty">—</span></div>
+      <div class="kv"><span class="k">纳音</span><span class="v gold" id="hSound">—</span></div>
+      <div class="kv"><span class="k">年内第 <b id="hIndex">—</b> 天 / 九星</span><span class="v" id="hNine">—</span></div>
+    </div>
+  </section>
+
+  <div class="grid" id="cardGrid"></div>
+
+  <div class="two">
+    <section class="panel">
+      <h2>宜 / 忌<span class="tag" id="yijiTag">—</span></h2>
+      <div class="yiji">
+        <div class="box yi"><b>宜</b><div class="chips" id="yiList"></div></div>
+        <div class="box ji"><b>忌</b><div class="chips" id="jiList"></div></div>
+      </div>
+      <h2 style="margin-top:22px">神煞<span class="tag" id="godsTag">—</span></h2>
+      <div class="chips gods" id="godsList"></div>
+    </section>
+
+    <section class="panel">
+      <h2>八字排盘</h2>
+      <input type="datetime-local" id="baziInput" step="60" style="width:100%">
+      <table class="bazi-table">
+        <thead><tr><th>年柱</th><th>月柱</th><th>日柱</th><th>时柱</th></tr></thead>
+        <tbody>
+          <tr id="baziRow"><td class="cy">—</td><td class="cy">—</td><td class="cy">—</td><td class="cy">—</td></tr>
+          <tr id="baziTen"><td class="snd">—</td><td class="snd">—</td><td class="snd">—</td><td class="snd">—</td></tr>
+        </tbody>
+      </table>
+      <div class="bazi-extra">
+        <div><span>胎元</span><b id="bFetal">—</b></div>
+        <div><span>胎息</span><b id="bBreath">—</b></div>
+        <div><span>命宫</span><b id="bOwn">—</b></div>
+        <div><span>身宫</span><b id="bBody">—</b></div>
+        <div><span>日主</span><b id="bMaster">—</b></div>
+        <div><span>时区</span><b id="bZone">—</b></div>
+      </div>
+      <p class="hint" style="margin:14px 0 0">按传统节气换月、以子初换日推排，支持 1900–2100 年区间精度最佳。</p>
+    </section>
+  </div>
+
+  <section class="panel">
+    <div class="cal-head">
+      <button class="btn icon" id="prevMonth">‹</button>
+      <div class="title serif" id="calTitle">2026年11月</div>
+      <button class="btn icon" id="nextMonth">›</button>
+      <div class="spacer"></div>
+      <span class="hint" id="calLunar">农历丙午年 九月</span>
+    </div>
+    <div class="cal" id="calGrid"></div>
+    <div class="legend">
+      <span><i style="background:#b0862c"></i>今天</span>
+      <span><i style="background:#a8412c"></i>选中</span>
+      <span><i style="background:#3f6b4f"></i>节气</span>
+      <span><i style="background:#a8412c"></i>节日</span>
+      <span>小字为农历日期与节气</span>
+    </div>
+  </section>
+
+  <footer>
+    数据与历法计算由 <a href="https://github.com/6tail/tyme4ts" target="_blank" rel="noopener">tyme4ts</a> 提供 · MIT License<br>
+    本站为 tyme4ts 的演示部署，同时构建于 GitHub Pages 与 Cloudflare Pages
+  </footer>
+</div>
+
+<script>
+/* 优先加载同目录下构建出的 tyme.min.js（GitHub Actions / Cloudflare Pages 构建产物），
+   若不存在则回退到 CDN 上的官方 npm 包。 */
+(function(){
+  var CDN = "https://cdn.jsdelivr.net/npm/tyme4ts@1.5.5/+esm";
+  function loadScript(src){
+    return new Promise(function(res, rej){
+      var s = document.createElement("script");
+      s.src = src; s.async = false;
+      s.onload = function(){ res(); };
+      s.onerror = function(){ rej(new Error("load failed: " + src)); };
+      document.head.appendChild(s);
+    });
+  }
+  window.__tymeReady = (function(){
+    return (async function(){
+      try{
+        var r = await fetch("./tyme.min.js", { method: "HEAD" });
+        if(r.ok){
+          await loadScript("./tyme.min.js");
+          if(window.Tyme) return window.Tyme;
+        }
+      }catch(e){ /* 本地构建产物不存在，走 CDN */ }
+      var mod = await import(CDN);
+      window.Tyme = mod;
+      return mod;
+    })();
+  })();
+})();
+</script>
+<script>
+function main(T){
+  "use strict";
+  var WEEK = ["日","一","二","三","四","五","六"];
+
+  function txt(fn, dft){
+    try{
+      var v = fn();
+      if(v === null || v === undefined) return dft === undefined ? "—" : dft;
+      return typeof v === "string" ? v : v.toString();
+    }catch(e){ return dft === undefined ? "—" : dft; }
+  }
+  function pad(n){ return n < 10 ? "0" + n : "" + n; }
+  function isoOf(d){ return d.getFullYear() + "-" + pad(d.getMonth()+1) + "-" + pad(d.getDate()); }
+
+  var state = { sel: new Date(), calY: 0, calM: 0 };
+
+  /* ---------------- 详情渲染 ---------------- */
+  function renderDetail(date){
+    var y = date.getFullYear(), m = date.getMonth()+1, d = date.getDate();
+    var solar = T.SolarDay.fromYmd(y, m, d);
+    var lunar = solar.getLunarDay();
+    var sc    = lunar.getSixtyCycle();
+
+    document.getElementById("hDay").textContent = d;
+    document.getElementById("hMonth").innerHTML = y + "年" + m + "月<br><b>星期" + WEEK[date.getDay()] + "</b>";
+    document.getElementById("hLunar").textContent = txt(function(){ return lunar.toString(); });
+    document.getElementById("hSub").textContent = txt(function(){ return solar.getSixtyCycleDay().toString(); });
+
+    // 生肖 / 星座
+    var zodiac = txt(function(){ return lunar.getYearSixtyCycle().getEarthBranch().getZodiac().toString(); });
+    var constellation = txt(function(){ return solar.getConstellation().toString(); });
+    document.getElementById("hZodiac").innerHTML = zodiac + " 年<span class='pill gray'>" + constellation + "座</span>";
+
+    // 节气 / 物候
+    var term = txt(function(){ return solar.getTerm().getName(); }, "");
+    var termDay = txt(function(){ return solar.getTermDay().toString(); }, "");
+    var phenology = txt(function(){ return solar.getPhenology().toString(); }, "");
+    document.getElementById("hTerm").textContent = (term || "—") + (phenology ? " · " + phenology : "");
+
+    // 日主五行
+    var stem = sc.getHeavenStem();
+    var el = txt(function(){ return stem.getElement().toString(); }, "");
+    var yy = txt(function(){ return stem.getYinYang() === T.YinYang.YANG ? "阳" : "阴"; }, "");
+    document.getElementById("hElement").innerHTML = "<span class='pill'>" + stem.toString() + "</span>" + yy + el;
+
+    // 值神 / 建除
+    document.getElementById("hDuty").textContent =
+      txt(function(){ return lunar.getTwelveStar().toString(); }) + " · " +
+      txt(function(){ return lunar.getDuty().toString(); });
+
+    document.getElementById("hSound").textContent = txt(function(){ return sc.getSound().toString(); });
+    document.getElementById("hIndex").textContent = txt(function(){ return solar.getIndexInYear(); });
+    document.getElementById("hNine").textContent = txt(function(){ return solar.getNineStar().toString(); });
+
+    /* 卡片 */
+    var cards = [
+      { label:"节气", value: term || "无", meta: termDay || "—" },
+      { label:"月相", value: txt(function(){ return solar.getPhase().getName(); }), meta: txt(function(){ return solar.getPhaseDay().toString(); }) },
+      { label:"六曜", value: txt(function(){ return lunar.getSixStar().toString(); }), meta:"择日参考" },
+      { label:"星宿", value: txt(function(){ return lunar.getTwentyEightStar().toString(); }), meta: txt(function(){ return lunar.getTwentyEightStar().getLuck ? lunar.getTwentyEightStar().getLuck().toString() : "二十八宿"; }, "二十八宿") },
+      { label:"冲煞", value: txt(function(){ return sc.getEarthBranch().getOpposite().getZodiac().toString(); }), meta: "冲" + txt(function(){ return sc.getEarthBranch().getOpposite().toString(); }) + " · 日支" + txt(function(){ return sc.getEarthBranch().toString(); }) },
+      { label:"胎神", value: txt(function(){ return lunar.getFetusDay().toString(); }), meta:"胎神方位", sm:true },
+      { label:"彭祖百忌", value: txt(function(){ return sc.getPengZu().toString(); }, "—"), meta:"日干支宜忌", sm:true },
+      { label:"小六壬", value: txt(function(){ return lunar.getMinorRen().toString(); }), meta:"月日时起课" },
+      { label:"藏历", value: txt(function(){ return solar.getRabByungDay().toString(); }, "—"), meta:"RabByung", sm:true },
+      { label:"回历", value: txt(function(){ return solar.getHijriDay().toString(); }, "—"), meta:"Hijri", sm:true },
+      { label:"法定假日", value:"无", meta:"非法定假日", sm:true },
+      { label:"节日", value: txt(function(){ return solar.getFestival().toString(); }, "无"), meta: txt(function(){ return lunar.getFestival() ? lunar.getFestival().toString() : "无农历节日"; }, "—"), sm:true }
+    ];
+    var legalTxt = "无", legalMeta = "非法定假日";
+    try{
+      var lh = solar.getLegalHoliday();
+      if(lh){
+        legalTxt = lh.getName() + (lh.isWork() ? "（调休上班）" : "（放假）");
+        legalMeta = lh.getDay().toString();
+      }
+    }catch(e){}
+    cards[10].value = legalTxt;
+    cards[10].meta = legalMeta;
+
+    var html = "";
+    for(var i=0;i<cards.length;i++){
+      var c = cards[i];
+      html += '<div class="card"><div class="label">' + c.label + '</div>' +
+              '<div class="value' + (c.sm ? " sm" : "") + '">' + (c.value || "—") + "</div>" +
+              (c.meta ? '<div class="meta">' + c.meta + "</div>" : "") + "</div>";
+    }
+    document.getElementById("cardGrid").innerHTML = html;
+
+    /* 宜忌 */
+    var yis = [], jis = [];
+    try{ yis = lunar.getRecommends().map(function(x){ return x.toString(); }); }catch(e){}
+    try{ jis = lunar.getAvoids().map(function(x){ return x.toString(); }); }catch(e){}
+    document.getElementById("yijiTag").textContent = sc.toString() + "日 · 建除「" + txt(function(){ return lunar.getDuty().toString(); }) + "」";
+    document.getElementById("yiList").innerHTML = yis.length
+      ? yis.map(function(s){ return '<span class="chip">' + s + "</span>"; }).join("")
+      : '<span class="chip">诸事不宜</span>';
+    document.getElementById("jiList").innerHTML = jis.length
+      ? jis.map(function(s){ return '<span class="chip">' + s + "</span>"; }).join("")
+      : '<span class="chip">无</span>';
+
+    /* 神煞 */
+    var gods = [];
+    try{ gods = lunar.getGods(); }catch(e){}
+    document.getElementById("godsTag").textContent = gods.length + " 位";
+    document.getElementById("godsList").innerHTML = gods.map(function(g){
+      var luck = "";
+      try{ luck = g.getLuck().toString(); }catch(e){}
+      var cls = luck.indexOf("吉") >= 0 ? "chip good" : (luck.indexOf("凶") >= 0 ? "chip bad" : "chip");
+      return '<span class="' + cls + '">' + g.toString() + (luck ? " · " + luck : "") + "</span>";
+    }).join("") || '<span class="chip">无</span>';
+  }
+
+  /* ---------------- 月历 ---------------- */
+  function renderMonth(){
+    var y = state.calY, m = state.calM;
+    var month = T.SolarMonth.fromYm(y, m);
+    var days = month.getDays();
+    var today = new Date();
+    var todayIso = isoOf(today);
+    var selIso = isoOf(state.sel);
+
+    document.getElementById("calTitle").textContent = y + "年" + m + "月";
+    document.getElementById("calLunar").textContent = txt(function(){
+      var mid = days[Math.floor(days.length/2)].getLunarDay().getLunarMonth();
+      return mid.getLunarYear().toString() + " " + mid.getName();
+    }, "");
+
+    var html = "";
+    for(var w=0; w<7; w++){ html += '<div class="wd' + (w===0||w===6 ? " weekend" : "") + '">' + WEEK[w] + "</div>"; }
+
+    var lead = days[0].getWeek().getIndex();
+    for(var i=0;i<lead;i++){ html += '<div class="day empty"></div>'; }
+
+    for(var j=0;j<days.length;j++){
+      var sd = days[j];
+      var lun = sd.getLunarDay();
+      var iso = isoOf(new Date(sd.getSolarMonth().getYear(), sd.getSolarMonth().getMonth()-1, sd.getDay()));
+      var sub = "", cls = "d2";
+      var lname = lun.getName();
+      // 初一显示农历月份名，其余显示日名
+      var isFirst = lname === "初一";
+      var termName = txt(function(){ return sd.getTerm().getName(); }, "");
+      var termDayTxt = txt(function(){ return sd.getTermDay().toString(); }, "");
+      var isTermDay = termDayTxt.indexOf("第1天") >= 0;
+      var festName = txt(function(){ return sd.getFestival() ? sd.getFestival().toString() : ""; }, "");
+      if(isFirst){ sub = txt(function(){ return lun.getLunarMonth().getName(); }, ""); }
+      else if(isTermDay){ sub = termName; cls += " term"; }
+      else if(festName){ sub = festName; cls += " fest"; }
+      else { sub = lname; }
+
+      var klasses = "day";
+      if(iso === todayIso) klasses += " today";
+      if(iso === selIso) klasses += " sel";
+      html += '<div class="' + klasses + '" data-iso="' + iso + '" title="' + txt(function(){return sd.toString();}) + ' ' + txt(function(){return lun.toString();}) + '">' +
+              '<div class="d1">' + sd.getDay() + "</div>" +
+              '<div class="' + cls + '">' + sub + "</div></div>";
+    }
+    document.getElementById("calGrid").innerHTML = html;
+
+    var nodes = document.querySelectorAll("#calGrid .day[data-iso]");
+    for(var k=0;k<nodes.length;k++){
+      nodes[k].addEventListener("click", function(){
+        var parts = this.getAttribute("data-iso").split("-");
+        selectDate(new Date(+parts[0], +parts[1]-1, +parts[2]));
+      });
+    }
+  }
+
+  /* ---------------- 八字 ---------------- */
+  function renderBazi(dt){
+    try{
+      var st = T.SolarTime.fromYmdHms(dt.getFullYear(), dt.getMonth()+1, dt.getDate(), dt.getHours(), dt.getMinutes(), 0);
+      var lh = st.getLunarHour();
+      var ec = lh.getEightChar();
+      var cols = [ec.getYear(), ec.getMonth(), ec.getDay(), ec.getHour()];
+      var tds = document.querySelectorAll("#baziRow td");
+      var tens = document.querySelectorAll("#baziTen td");
+      for(var i=0;i<4;i++){
+        var c = cols[i];
+        tds[i].textContent = c ? c.toString() : "—";
+        var sound = "", ten = "";
+        try{ sound = c.getSound().toString(); }catch(e){}
+        try{ ten = c.getTen ? c.getTen().toString() : ""; }catch(e){}
+        tens[i].textContent = sound || ten || "—";
+      }
+      document.getElementById("bFetal").textContent = txt(function(){ return ec.getFetalOrigin().toString(); });
+      document.getElementById("bBreath").textContent = txt(function(){ return ec.getFetalBreath().toString(); });
+      document.getElementById("bOwn").textContent = txt(function(){ return ec.getOwnSign().toString(); });
+      document.getElementById("bBody").textContent = txt(function(){ return ec.getBodySign().toString(); });
+      document.getElementById("bMaster").textContent = txt(function(){ return ec.getDay().getHeavenStem().toString() + " " + ec.getDay().getHeavenStem().getElement().toString(); });
+      document.getElementById("bZone").textContent = txt(function(){ return st.toString(); });
+    }catch(e){
+      document.getElementById("bZone").textContent = "该时间超出可排盘范围";
+    }
+  }
+
+  /* ---------------- 交互 ---------------- */
+  function selectDate(date){
+    state.sel = date;
+    state.calY = date.getFullYear();
+    state.calM = date.getMonth()+1;
+    document.getElementById("datePicker").value = isoOf(date);
+    renderDetail(date);
+    renderMonth();
+    var dt = document.getElementById("baziInput");
+    if(!dt.dataset.touched){
+      dt.value = isoOf(date) + "T12:00";
+      renderBazi(new Date(date.getFullYear(), date.getMonth(), date.getDate(), 12, 0));
+    }
+  }
+
+  document.getElementById("datePicker").addEventListener("change", function(){
+    if(!this.value) return;
+    var p = this.value.split("-");
+    selectDate(new Date(+p[0], +p[1]-1, +p[2]));
+  });
+  document.getElementById("prevDay").addEventListener("click", function(){
+    var d = new Date(state.sel); d.setDate(d.getDate()-1); selectDate(d);
+  });
+  document.getElementById("nextDay").addEventListener("click", function(){
+    var d = new Date(state.sel); d.setDate(d.getDate()+1); selectDate(d);
+  });
+  document.getElementById("todayBtn").addEventListener("click", function(){ selectDate(new Date()); });
+  document.getElementById("prevMonth").addEventListener("click", function(){
+    state.calM--; if(state.calM < 1){ state.calM = 12; state.calY--; } renderMonth();
+  });
+  document.getElementById("nextMonth").addEventListener("click", function(){
+    state.calM++; if(state.calM > 12){ state.calM = 1; state.calY++; } renderMonth();
+  });
+  document.getElementById("baziInput").addEventListener("input", function(){
+    this.dataset.touched = "1";
+    if(!this.value) return;
+    var t = new Date(this.value);
+    if(!isNaN(t.getTime())) renderBazi(t);
+  });
+
+  selectDate(new Date());
+}
+
+window.__tymeReady.then(main).catch(function(err){
+  document.getElementById("jumpHint").textContent = "日历库加载失败：" + (err && err.message ? err.message : err);
+  console.error(err);
+});
+</script>
+</body>
+</html>
