@@ -2,6 +2,13 @@
 
 Tyme是一个非常强大的日历工具库，可以看作 [Lunar](https://6tail.cn/calendar/api.html "https://6tail.cn/calendar/api.html") 的升级版，拥有更优的设计和扩展性，支持公历、农历、藏历、回历、星座、干支、生肖、节气、月相、法定假日等。
 
+## 在线演示
+
+本项目在本仓库的 `docs/` 目录附带一个演示站点（公历 / 农历 / 干支 / 节气 / 月相 / 神煞宜忌 / 八字排盘 / 月历），构建时用 esbuild 将 `lib/index.ts` 打包为浏览器可用的 `tyme.min.js`：
+
+- GitHub Pages：https://httcup.github.io/tyme4ts/
+- Cloudflare Pages：https://tyme4ts.pages.dev/
+
 ## 示例
 
     // install
