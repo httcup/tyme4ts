@@ -1,0 +1,436 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>日期查询 · tyme4ts 公历农历互转 / 四柱 / 节气 / 星宿 / 纳音</title>
+<meta name="description" content="基于 tyme4ts 的日期查询：公历农历双向换算，四柱干支、二十四节气、下一节气时刻、星宿值神、纳音、冲煞与方位神。">
+<style>
+:root{
+  --bg:#f6f4ef;
+  --panel:#ffffff;
+  --panel-2:#fbfaf6;
+  --line:#e7e2d8;
+  --line-soft:#f0ece3;
+  --ink:#221f1a;
+  --ink-2:#4a463d;
+  --ink-3:#87816f;
+  --accent:#a8412c;
+  --accent-soft:#f5e7e2;
+  --gold:#b0862c;
+  --gold-soft:#f7f0df;
+  --green:#3f6b4f;
+  --radius:16px;
+  --shadow:0 1px 2px rgba(34,31,26,.04), 0 8px 24px -12px rgba(34,31,26,.14);
+  --serif:"Songti SC","Noto Serif SC",Georgia,"Times New Roman",serif;
+}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0}
+body{
+  background:radial-gradient(1200px 600px at 50% -300px, #fffdf8 0%, transparent 70%), var(--bg);
+  color:var(--ink);
+  font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;
+  font-feature-settings:"tnum";-webkit-font-smoothing:antialiased;line-height:1.6;
+  padding:0 20px 64px;
+}
+.wrap{max-width:1120px;margin:0 auto}
+a{color:inherit}
+
+/* nav */
+.nav{position:sticky;top:0;z-index:20;background:rgba(246,244,239,.88);backdrop-filter:blur(12px);border-bottom:1px solid var(--line)}
+.nav-in{display:flex;align-items:center;gap:16px;height:60px;max-width:1120px;margin:0 auto}
+.brand{display:flex;align-items:center;gap:10px;font-weight:650;letter-spacing:.03em;text-decoration:none}
+.seal{width:28px;height:28px;border-radius:8px;background:var(--accent);color:#fff;display:grid;place-items:center;font-size:15px;font-family:var(--serif)}
+.nav-links{margin-left:auto;display:flex;gap:20px;font-size:13.5px;color:var(--ink-2)}
+.nav-links a{text-decoration:none;transition:.15s}
+.nav-links a:hover{color:var(--accent)}
+.nav-links a.on{color:var(--accent);font-weight:600}
+@media(max-width:560px){.nav-links{gap:14px;font-size:12.5px}.nav-links .hide-xs{display:none}}
+
+/* section head */
+.sec-head{display:flex;align-items:baseline;gap:12px;padding:34px 0 16px;flex-wrap:wrap}
+.sec-head h1{font-family:var(--serif);font-size:24px;font-weight:600;margin:0;letter-spacing:.04em}
+.sec-head .hint{font-size:13px;color:var(--ink-3)}
+.sec-head .spacer{flex:1}
+.tolink{font-size:13px;color:var(--ink-2);text-decoration:none;border:1px solid var(--line);background:var(--panel);border-radius:999px;padding:7px 14px;transition:.18s}
+.tolink:hover{border-color:var(--ink-3);color:var(--ink);transform:translateY(-1px)}
+
+/* panel */
+.panel{background:var(--panel-2);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow);padding:22px}
+
+/* tabs */
+.modes{display:inline-flex;background:#f0ece2;border-radius:10px;padding:3px;gap:2px}
+.modes button{
+  border:0;background:transparent;padding:7px 16px;border-radius:8px;font-size:13.5px;
+  color:var(--ink-2);cursor:pointer;font-family:inherit;transition:.15s;
+}
+.modes button.on{background:#fff;color:var(--ink);font-weight:600;box-shadow:0 1px 3px rgba(34,31,26,.12)}
+
+/* form */
+.form{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin-top:16px}
+.form[hidden]{display:none}
+input[type=date],input[type=time],input[type=number]{
+  font:inherit;font-size:14px;color:var(--ink);background:#fff;border:1px solid var(--line);
+  border-radius:10px;padding:9px 12px;outline:none;transition:.15s;
+}
+input[type=date]:focus,input[type=time]:focus,input[type=number]:focus{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft)}
+input[type=number]{width:88px}
+.btn{
+  font:inherit;font-size:14px;padding:9px 20px;border-radius:10px;cursor:pointer;transition:.15s;
+  border:1px solid var(--accent);background:var(--accent);color:#fff;
+}
+.btn:hover{background:#933827;border-color:#933827}
+.btn.ghost{background:#fff;border-color:var(--line);color:var(--ink-2)}
+.btn.ghost:hover{background:#fff;border-color:var(--ink-3);color:var(--ink)}
+.chk{display:inline-flex;align-items:center;gap:6px;font-size:13px;color:var(--ink-2);cursor:pointer}
+.tip{font-size:12.5px;color:var(--ink-3)}
+
+/* result */
+.result{margin-top:20px;display:none}
+.result.on{display:block}
+.result.err .pillars,.result.err .kv{display:none}
+
+/* pillars */
+.pillars{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
+@media(max-width:700px){.pillars{grid-template-columns:repeat(2,1fr)}}
+.pillar{background:#fff;border:1px solid var(--line);border-radius:12px;padding:16px 12px;text-align:center}
+.pillar .lbl{font-size:11.5px;letter-spacing:.14em;color:var(--ink-3)}
+.pillar .gz{font-family:var(--serif);font-size:30px;letter-spacing:.08em;margin-top:8px;line-height:1.2}
+.pillar .sub{font-size:12px;color:var(--ink-3);margin-top:6px}
+.pillar.master{border-color:rgba(168,65,44,.35);background:#fffaf8}
+.pillar.master .gz{color:var(--accent)}
+
+/* kv */
+.kv{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:10px}
+@media(max-width:700px){.kv{grid-template-columns:repeat(2,1fr)}}
+.kv .item{background:#fff;border:1px solid var(--line);border-radius:12px;padding:12px 14px}
+.kv .item .k{font-size:11.5px;letter-spacing:.06em;color:var(--ink-3)}
+.kv .item .v{font-size:14px;margin-top:3px;color:var(--ink);overflow-wrap:anywhere}
+.kv .item .v.red{color:var(--accent)}
+.kv .item .v.green{color:var(--green)}
+
+/* full line */
+.full-line{
+  margin-top:12px;font-size:12.8px;line-height:1.9;color:var(--ink-2);
+  border:1px dashed var(--line);border-radius:12px;padding:13px 15px;background:#fff;
+  word-break:break-all;
+}
+.full-line b{color:var(--ink);font-weight:600}
+
+footer{margin-top:30px;text-align:center;font-size:12.5px;color:var(--ink-3);line-height:1.9}
+footer a{color:var(--ink-2);text-decoration:none;border-bottom:1px solid var(--line)}
+footer a:hover{color:var(--accent);border-color:var(--accent)}
+</style>
+</head>
+<body>
+
+<nav class="nav">
+  <div class="nav-in">
+    <a class="brand" href="./index.html"><span class="seal">历</span><span>tyme4ts 日历工具</span></a>
+    <div class="nav-links">
+      <a href="./index.html">万年历</a>
+      <a class="on" href="./query.html">日期查询</a>
+      <a class="hide-xs" href="https://github.com/httcup/tyme4ts" target="_blank" rel="noopener">GitHub</a>
+    </div>
+  </div>
+</nav>
+
+<main class="wrap">
+  <div class="sec-head">
+    <h1>日期查询</h1>
+    <span class="hint">公历 ↔ 农历，查四柱、节气、星宿、纳音</span>
+    <div class="spacer"></div>
+    <a class="tolink" href="./index.html">去看万年历 →</a>
+  </div>
+
+  <section class="panel">
+    <div class="modes" role="tablist">
+      <button class="on" data-mode="s2l" type="button">公历 → 农历</button>
+      <button data-mode="l2s" type="button">农历 → 公历</button>
+    </div>
+
+    <div class="form" id="form-s2l">
+      <input type="date" id="in-date">
+      <input type="time" id="in-time" value="00:00" title="出生/查询时刻，决定时柱">
+      <button class="btn" id="btn-s2l" type="button">查询</button>
+      <button class="btn ghost" id="btn-today" type="button">今天</button>
+      <span class="tip">时刻默认为子初（00:00），可改来查时柱</span>
+    </div>
+
+    <div class="form" id="form-l2s" hidden>
+      <input type="number" id="in-y" placeholder="年" style="width:104px">
+      <input type="number" id="in-m" placeholder="月" style="width:80px">
+      <input type="number" id="in-d" placeholder="日" style="width:80px">
+      <label class="chk"><input type="checkbox" id="in-leap"> 闰月</label>
+      <input type="time" id="in-time2" value="00:00" title="时刻，决定时柱">
+      <button class="btn" id="btn-l2s" type="button">查询</button>
+      <span class="tip">例：2026 年 9 月 29 日 → 公历 2026-11-07</span>
+    </div>
+
+    <div class="result" id="result">
+      <div class="pillars" id="r-pillars"></div>
+      <div class="kv" id="r-kv"></div>
+      <div class="full-line" id="r-full"></div>
+    </div>
+  </section>
+
+  <footer>
+    历法计算由 <a href="https://github.com/6tail/tyme4ts" target="_blank" rel="noopener">tyme4ts</a> 提供 · MIT License<br>
+    本站为 tyme4ts 的演示部署，喜神 / 阳贵 / 阴贵 / 福神 / 财神方位均取自 tyme4ts 的干支方位数据
+  </footer>
+</main>
+
+<script>
+/* 与 index.html 相同：优先用构建产物 tyme.min.js，缺失时回退官方 npm 包 */
+(function(){
+  var CDN = "https://cdn.jsdelivr.net/npm/tyme4ts@1.5.5/+esm";
+  function loadScript(src){
+    return new Promise(function(res, rej){
+      var s = document.createElement("script");
+      s.src = src; s.async = false;
+      s.onload = function(){ res(); };
+      s.onerror = function(){ rej(new Error("load failed: " + src)); };
+      document.head.appendChild(s);
+    });
+  }
+  window.__tymeReady = (async function(){
+    try{
+      var r = await fetch("./tyme.min.js", { method: "HEAD" });
+      if(r.ok){
+        await loadScript("./tyme.min.js");
+        if(window.Tyme) return window.Tyme;
+      }
+    }catch(e){ /* 无构建产物则走 CDN */ }
+    var mod = await import(CDN);
+    window.Tyme = mod;
+    return mod;
+  })();
+})();
+</script>
+
+<script>
+function main(T){
+  "use strict";
+
+  var $ = function(id){ return document.getElementById(id); };
+  var pad = function(n){ return n < 10 ? "0" + n : "" + n; };
+  var WEEK = ["日","一","二","三","四","五","六"];
+  var CN_NUM = ["〇","一","二","三","四","五","六","七","八","九"];
+
+  /* 方位神全部取自 tyme4ts 的 HeavenStem（喜神 / 阳贵 / 阴贵 / 福神 / 财神） */
+  var DIR_FIX = { "东":"正东", "南":"正南", "西":"正西", "北":"正北" };
+  var GUA_BY_DIR = { "西北":"乾", "西南":"坤", "东北":"艮", "东南":"巽", "正东":"震", "正西":"兑", "正南":"离", "正北":"坎" };
+  var ZONE = { "东":"东方青龙", "南":"南方朱雀", "西":"西方白虎", "北":"北方玄武" };
+  function dir(d){
+    var s = d === null || d === undefined ? "" : String(d);
+    return DIR_FIX[s] || s;
+  }
+  /* 输出 喜神方位[乾](西北) 这种传统写法 */
+  function posText(label, dirStr){
+    var dd = dir(dirStr);
+    var gua = GUA_BY_DIR[dd] || "";
+    return label + "[" + (gua || dd || "—") + "](" + (dd || "—") + ")";
+  }
+
+  function chineseYear(y){
+    return String(y).split("").map(function(c){ return CN_NUM[+c]; }).join("");
+  }
+  function safe(fn, dft){
+    try{
+      var v = fn();
+      if(v === null || v === undefined) return dft;
+      return typeof v === "string" ? v : v.toString();
+    }catch(e){ return dft; }
+  }
+  function dayDiff(a, b){
+    var t1 = Date.UTC(a.getYear(), a.getMonth() - 1, a.getDay());
+    var t2 = Date.UTC(b.getYear(), b.getMonth() - 1, b.getDay());
+    return Math.round((t2 - t1) / 86400000);
+  }
+  function nextTerm(solarDay){
+    var cur = solarDay.getTerm().getName();
+    var x = solarDay;
+    for(var i = 0; i < 40; i++){
+      x = x.next(1);
+      if(x.getTerm().getName() !== cur) return x.getTerm();
+    }
+    return null;
+  }
+
+  /* ---------- 渲染结果 ---------- */
+  function render(solarDay, hh, mm){
+    var time = T.SolarTime.fromYmdHms(solarDay.getYear(), solarDay.getMonth(), solarDay.getDay(), hh, mm, 0);
+    var lunar = solarDay.getLunarDay();
+    var ec = time.getLunarHour().getEightChar();
+
+    var ySC = ec.getYear(), mSC = ec.getMonth(), dSC = ec.getDay(), hSC = ec.getHour();
+    var hourName = safe(function(){ return time.getLunarHour().getName(); }, "");
+
+    /* 四柱 */
+    var cols = [
+      { lbl:"年柱", gz:ySC, sub:safe(function(){ return ySC.getEarthBranch().getZodiac(); },"") + "年" },
+      { lbl:"月柱", gz:mSC, sub:"节气月" },
+      { lbl:"日柱", gz:dSC, sub:safe(function(){ return dSC.getSound(); },"") },
+      { lbl:"时柱", gz:hSC, sub:hourName || "时辰" }
+    ];
+    $("r-pillars").innerHTML = cols.map(function(c){
+      return '<div class="pillar' + (c.master ? " master" : "") + '">' +
+             '<div class="lbl">' + c.lbl + "</div>" +
+             '<div class="gz">' + c.gz + "</div>" +
+             '<div class="sub">' + c.sub + "</div></div>";
+    }).join("");
+
+    /* 基本信息 */
+    var isTermDay = safe(function(){ return solarDay.getTermDay().toString(); }, "").indexOf("第1天") >= 0;
+    var termName = safe(function(){ return solarDay.getTerm().getName(); }, "—");
+    var termText = isTermDay ? ("当日 " + termName) : (termName + " 后 " + dayDiff(solarDay.getTerm().getSolarDay(), solarDay) + " 天");
+
+    var nt = nextTerm(solarDay);
+    var ntText = "—";
+    if(nt){
+      var nst = nt.getJulianDay().getSolarTime();
+      ntText = nt.getName() + " · " + nst.getYear() + "-" + pad(nst.getMonth()) + "-" + pad(nst.getDay()) +
+               " " + pad(nst.getHour()) + ":" + pad(nst.getMinute());
+    }
+
+    var ganIndex = dSC.getHeavenStem().getIndex();
+    var chongGan = T.HeavenStem.fromIndex((ganIndex + 4) % 10).toString();
+    var chongBranch = dSC.getEarthBranch().getOpposite();
+    var chongZodiac = safe(function(){ return chongBranch.getZodiac(); }, "");
+    var sha = safe(function(){ return dSC.getEarthBranch().getOminous(); }, "—");
+
+    var festivals = [];
+    var f1 = safe(function(){ return solarDay.getFestival() ? solarDay.getFestival().getName() : ""; }, "");
+    var f2 = safe(function(){ return lunar.getFestival() ? lunar.getFestival().getName() : ""; }, "");
+    if(f1) festivals.push(f1);
+    if(f2) festivals.push(f2);
+
+    var kv = [
+      { k:"公历", v:solarDay.getYear() + "-" + pad(solarDay.getMonth()) + "-" + pad(solarDay.getDay()) + " 星期" + WEEK[solarDay.getWeek().getIndex()] },
+      { k:"农历", v:chineseYear(lunar.getLunarMonth().getYear()) + "年" + lunar.getLunarMonth().getName() + lunar.getName() },
+      { k:"生肖 / 星座", v:safe(function(){ return lunar.getYearSixtyCycle().getEarthBranch().getZodiac(); },"—") + " / " + safe(function(){ return solarDay.getConstellation(); },"—") + "座" },
+      { k:"节气", v:termText, cls:isTermDay ? "green" : "" },
+      { k:"下一节气", v:ntText },
+      { k:"日纳音", v:safe(function(){ return dSC.getSound(); },"—") },
+      { k:"星宿 / 值神", v:safe(function(){ return lunar.getTwentyEightStar(); },"—") + "宿 / " + safe(function(){ return lunar.getTwelveStar(); },"—") },
+      { k:"冲煞", v:"(" + chongGan + chongBranch + ")" + chongZodiac + " 煞" + sha },
+      { k:"节日", v:festivals.length ? festivals.join("、") : "无", cls:festivals.length ? "red" : "" }
+    ];
+    $("r-kv").innerHTML = kv.map(function(c){
+      return '<div class="item"><div class="k">' + c.k + '</div><div class="v ' + (c.cls || "") + '">' + c.v + "</div></div>";
+    }).join("");
+
+    /* 传统黄历全文 */
+    var stem = dSC.getHeavenStem();
+    var xiu = safe(function(){ return lunar.getTwentyEightStar(); }, "");
+    var xiuFull = safe(function(){
+      var s = lunar.getTwentyEightStar();
+      return s.getName() + s.getSevenStar() + s.getAnimal();
+    }, xiu);
+    var xiuLuck = safe(function(){ return lunar.getTwentyEightStar().getLuck(); }, "");
+    var zone = safe(function(){ return lunar.getTwentyEightStar().getZone(); }, "");
+    var pengzu = safe(function(){ return dSC.getPengZu(); }, "");
+
+    var parts = [
+      chineseYear(lunar.getLunarMonth().getYear()) + "年" + lunar.getLunarMonth().getName() + lunar.getName(),
+      ySC + "(" + safe(function(){ return ySC.getEarthBranch().getZodiac(); },"") + ")年",
+      mSC + "(" + safe(function(){ return mSC.getEarthBranch().getZodiac(); },"") + ")月",
+      dSC + "(" + safe(function(){ return dSC.getEarthBranch().getZodiac(); },"") + ")日",
+      safe(function(){ return hSC.getEarthBranch(); },"") + "(" + safe(function(){ return hSC.getEarthBranch().getZodiac(); },"") + ")时",
+      "纳音[" + safe(function(){ return ySC.getSound(); },"") + " " + safe(function(){ return mSC.getSound(); },"") + " " + safe(function(){ return dSC.getSound(); },"") + " " + safe(function(){ return hSC.getSound(); },"") + "]",
+      "星期" + WEEK[solarDay.getWeek().getIndex()],
+      "[" + termName + "]",
+      ZONE[zone] || "",
+      "星宿[" + xiuFull + "](" + xiuLuck + ")",
+      "彭祖百忌[" + pengzu + "]",
+      posText("喜神方位", safe(function(){ return stem.getJoyDirection(); },"")),
+      posText("阳贵神方位", safe(function(){ return stem.getYangDirection(); },"")),
+      posText("阴贵神方位", safe(function(){ return stem.getYinDirection(); },"")),
+      posText("福神方位", safe(function(){ return stem.getMascotDirection(); },"")),
+      posText("财神方位", safe(function(){ return stem.getWealthDirection(); },"")),
+      "冲[" + chongGan + chongBranch + "]" + chongZodiac,
+      "煞[" + sha + "]"
+    ];
+    $("r-full").textContent = parts.join(" ");
+
+    $("result").classList.remove("err");
+    $("result").classList.add("on");
+  }
+
+  /* ---------- 交互 ---------- */
+  var mode = "s2l";
+  function setMode(next){
+    mode = next;
+    var btns = document.querySelectorAll(".modes button");
+    for(var i = 0; i < btns.length; i++){
+      btns[i].classList.toggle("on", btns[i].getAttribute("data-mode") === next);
+    }
+    $("form-s2l").hidden = next !== "s2l";
+    $("form-l2s").hidden = next !== "l2s";
+  }
+  document.querySelectorAll(".modes button").forEach(function(b){
+    b.addEventListener("click", function(){ setMode(b.getAttribute("data-mode")); });
+  });
+
+  function parseTime(v){
+    var p = (v || "00:00").split(":");
+    return [parseInt(p[0], 10) || 0, parseInt(p[1], 10) || 0];
+  }
+
+  function querySolar(){
+    var v = $("in-date").value;
+    if(!v) return;
+    var p = v.split("-");
+    var t = parseTime($("in-time").value);
+    render(T.SolarDay.fromYmd(+p[0], +p[1], +p[2]), t[0], t[1]);
+  }
+
+  function queryLunar(){
+    var y = parseInt($("in-y").value, 10);
+    var m = parseInt($("in-m").value, 10);
+    var d = parseInt($("in-d").value, 10);
+    if(!y || !m || !d){
+      $("r-full").textContent = "请填写农历年、月、日。";
+      $("result").classList.add("on", "err");
+      return;
+    }
+    try{
+      var lunar = T.LunarDay.fromYmd(y, $("in-leap").checked ? -m : m, d);
+      var t = parseTime($("in-time2").value);
+      var solar = lunar.getSolarDay();
+      render(solar, t[0], t[1]);
+      /* 同步公历输入，便于切换回来看 */
+      $("in-date").value = solar.getYear() + "-" + pad(solar.getMonth()) + "-" + pad(solar.getDay());
+      $("in-time").value = $("in-time2").value;
+    }catch(e){
+      $("r-full").textContent = "该农历日期不存在，请检查年、月、日或闰月标记后重试。";
+      $("result").classList.add("on", "err");
+    }
+  }
+
+  var today = new Date();
+  $("in-date").value = today.getFullYear() + "-" + pad(today.getMonth() + 1) + "-" + pad(today.getDate());
+  $("in-y").value = "";
+  $("btn-s2l").addEventListener("click", querySolar);
+  $("btn-l2s").addEventListener("click", queryLunar);
+  $("btn-today").addEventListener("click", function(){
+    var n = new Date();
+    $("in-date").value = n.getFullYear() + "-" + pad(n.getMonth() + 1) + "-" + pad(n.getDate());
+    $("in-time").value = "00:00";
+    querySolar();
+  });
+  $("in-date").addEventListener("change", querySolar);
+  $("in-time").addEventListener("change", querySolar);
+
+  querySolar();
+}
+
+window.__tymeReady.then(main).catch(function(err){
+  var el = document.getElementById("r-full");
+  el.textContent = "日历库加载失败：" + (err && err.message ? err.message : err);
+  document.getElementById("result").classList.add("on");
+  console.error(err);
+});
+</script>
+</body>
+</html>

@@ -4,7 +4,11 @@ Tyme是一个非常强大的日历工具库，可以看作 [Lunar](https://6tail
 
 ## 在线演示
 
-本项目在本仓库的 `docs/` 目录附带一个演示站点（公历 / 农历 / 干支 / 节气 / 月相 / 神煞宜忌 / 八字排盘 / 月历），构建时用 esbuild 将 `lib/index.ts` 打包为浏览器可用的 `tyme.min.js`：
+本项目在本仓库的 `docs/` 目录附带演示站点，构建时用 esbuild 将 `lib/index.ts` 打包为浏览器可用的 `tyme.min.js`：
+
+- `docs/index.html` 万年历：公历 / 农历 / 干支 / 节气 / 月相 / 神煞宜忌 / 八字排盘 / 月历
+- `docs/query.html` 日期查询：公历 ↔ 农历双向换算、四柱（含时柱）、纳音、星宿值神、冲煞、下一节气时刻、传统黄历全文
+
 
 - GitHub Pages：https://httcup.github.io/tyme4ts/
 - Cloudflare Pages：https://tyme4ts.pages.dev/
